@@ -1,9 +1,11 @@
+let api_address = "http://localhost:8000/api/v1/"
+
 async function getBest() {
-    const res = await fetch("http://localhost:8000/api/v1/titles/?lang_contains=fr&sort_by=-imdb_score")
+    const res = await fetch(api_address + "titles/?lang_contains=fr&sort_by=-imdb_score")
     let bestList = await res.json();
     console.log(bestList.results[0])
 
-    const res2 = await fetch("http://localhost:8000/api/v1/titles/" + bestList.results[0].id)
+    const res2 = await fetch(api_address + "titles/" + bestList.results[0].id)
     let best = await res2.json();
     console.log(best)
 
@@ -12,16 +14,21 @@ async function getBest() {
 
 //TODO: Return 6 elements instead of 5
 async function getBestByGenre(genre) {
-    const res = await fetch("http://localhost:8000/api/v1/titles/?sort_by=-imdb_score&genre=" + genre)
+    const res = await fetch(api_address + "titles/?sort_by=-imdb_score&genre=" + genre)
+    const res2 = await fetch(api_address + "titles/?sort_by=-imdb_score&page=2&genre=" + genre)
     let bestList = await res.json();
-    console.log(bestList.results)
+    let bestList2 = await res2.json();
+    // console.log(bestList.results)
+    // console.log(bestList2.results)
+    let results = [...bestList.results]
+    results.push(bestList2.results[0])
 
-    return bestList.results
+    return results
 }
 
 async function getGenres() {
     let genres;
-    const res = await fetch('http://localhost:8000/api/v1/genres/')
+    const res = await fetch(api_address + "genres/")
     genres = await res.json();
 //    console.log(genres.results)
     return genres.results
@@ -122,3 +129,4 @@ async function createMovieCategory(genre) {
 setDropdown()
 setBest()
 createMovieCategory("Action")
+createMovieCategory("Drama")
