@@ -15,14 +15,18 @@ async function getBest() {
 }
 
 async function getBestByGenre(genre) {
-    const res = await fetch(api_address + "titles/?sort_by=-imdb_score&genre=" + genre)
-    const res2 = await fetch(api_address + "titles/?sort_by=-imdb_score&page=2&genre=" + genre)
+    let next = api_address + "titles/?sort_by=-imdb_score&genre=" + genre
+    const res = await fetch(next)
     let bestList = await res.json();
-    let bestList2 = await res2.json();
+    let movie_list = [...bestList.results]
+    next = bestList.next
+    if (next) {
+        const res2 = await fetch(next)
+        let bestList2 = await res2.json();
+        movie_list.push(bestList2.results[0])
+    }
     // console.log(bestList.results)
     // console.log(bestList2.results)
-    let movie_list = [...bestList.results]
-    movie_list.push(bestList2.results[0])
 
     let results = []
     for (let i = 0; i < movie_list.length; i++)
@@ -33,11 +37,20 @@ async function getBestByGenre(genre) {
 }
 
 async function getGenres() {
-    let genres;
-    const res = await fetch(api_address + "genres/")
-    genres = await res.json();
-//    console.log(genres.results)
-    return genres.results
+    let next = api_address + "genres/"
+    let genres = [];
+    console.log("Genre calls:")
+    while (next) {
+        const res = await fetch(next)
+        let json = await res.json();
+        console.log(json.results)
+        next = json.next
+        genres.push([...json.results])
+    }
+    genres = genres.flat(1)
+    console.log("Genres:")
+    console.log(genres)
+    return genres
 }
 
 async function setDropdown(){
@@ -49,6 +62,7 @@ async function setDropdown(){
         genreElement.innerHTML = genres[i].name
         dropdownElement.appendChild(genreElement);
     }
+    return genres[0]
 }
 
 async function setBest(){
@@ -68,7 +82,11 @@ async function setBest(){
     movieDescription.textContent = best.long_description;
 }
 
-async function createMovieCategory(genre) {
+function addDropdown(){
+    return false
+}
+
+async function createMovieCategory(genre, dropdown=false) {
     let bestList = await getBestByGenre(genre)
     console.log(bestList)
 
@@ -80,10 +98,17 @@ async function createMovieCategory(genre) {
     const titleDiv = document.createElement('div');
     titleDiv.classList.add('title');
     const categoryTitle = document.createElement('h2');
-    categoryTitle.textContent = genre;
-    titleDiv.appendChild(categoryTitle);
-    categorySection.appendChild(titleDiv);
-
+    if (dropdown === true) {
+        categoryTitle.textContent = genre;
+        genre = setDropdown()
+        titleDiv.appendChild(categoryTitle);
+        categorySection.appendChild(titleDiv);
+    }
+    else {
+        categoryTitle.textContent = genre;
+        titleDiv.appendChild(categoryTitle);
+        categorySection.appendChild(titleDiv);
+    }
     // Create movie block div
     const movieBlockDiv = document.createElement('div');
     movieBlockDiv.classList.add('movie-block');
@@ -131,7 +156,15 @@ async function createMovieCategory(genre) {
     document.body.appendChild(categorySection);
 }
 
+async function setCategories(){
+    let genresList = await getGenres()
+    console.log(genresList)
+    for (let i = 0; i < genresList.length; i++)
+        await createMovieCategory(genresList[i].name);
+    // await createMovieCategory("Drama")
+    // await createMovieCategory("Autre", true)
+}
+
 setDropdown()
 setBest()
-createMovieCategory("Action")
-createMovieCategory("Drama")
+setCategories()
