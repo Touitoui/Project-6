@@ -101,6 +101,10 @@ async function createMovieCategory(genre) {
         const movieImage = document.createElement('img');
         movieImage.src = movie.image_url;
         movieImage.alt = movie.title;
+        // If there's an error, use 404 image instead
+        movieImage.addEventListener("error", (event) => {
+            movieImage.src = "images/404.jpg";
+        })
         movieElem.appendChild(movieImage);
 
         // Add movie element to movie block
