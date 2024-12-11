@@ -49,7 +49,7 @@ async function getGenres() {
     return genres
 }
 
-function createDropdown(genres) {
+async function createDropdown(genres) {
     // Create dropdown section
     const dropdownSection = document.createElement('section');
     dropdownSection.classList.add('category-section');
@@ -139,7 +139,14 @@ async function updateMovieSection(genre, dropdownButton) {
 
             // Details button
             const detailsButton = document.createElement('button');
+            detailsButton.classList.add('details-button');
             detailsButton.textContent = 'Détails';
+
+            // Add event listener for details button
+            detailsButton.addEventListener('click', () => {
+                openModal(movie.title);
+            });
+
             movieTitleDiv.appendChild(detailsButton);
 
             // Add movie title div to movie element
@@ -157,6 +164,9 @@ async function updateMovieSection(genre, dropdownButton) {
             // Add movie element to movie block
             movieBlock.appendChild(movieElem);
         });
+
+        // Call enhanceDetailsButtons to ensure any missed buttons get listeners
+        enhanceDetailsButtons();
     } catch (error) {
         console.error('Error updating movie section:', error);
     }
@@ -227,6 +237,7 @@ async function createMovieCategory(genre) {
         // Details button
         const detailsButton = document.createElement('button');
         detailsButton.textContent = 'Détails';
+        detailsButton.classList.add('details-button');
         movieTitleDiv.appendChild(detailsButton);
 
         // Add movie title div to movie element
@@ -262,12 +273,86 @@ async function setCategories(){
     await createMovieCategory("News")
 }
 
+// Modal functionality
+async function createModal() {
+    // Create modal container
+    const modal = document.createElement('div');
+    modal.classList.add('modal');
+    modal.id = 'movieModal';
+
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.classList.add('modal-content');
+
+    // Close button
+    const closeButton = document.createElement('span');
+    closeButton.classList.add('modal-close');
+    closeButton.innerHTML = '&times;';
+    closeButton.onclick = closeModal;
+
+    // Modal title
+    const modalTitle = document.createElement('h2');
+    modalTitle.id = 'modal-movie-title';
+
+    // Assemble modal
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(modalTitle);
+    modal.appendChild(modalContent);
+
+    // Add to body
+    document.body.appendChild(modal);
+}
+
+function openModal(title) {
+    const modal = document.getElementById('movieModal');
+    const modalTitle = document.getElementById('modal-movie-title');
+
+    // Set movie title
+    modalTitle.textContent = title;
+
+    // Display modal
+    modal.style.display = 'block';
+}
+
+function closeModal() {
+    const modal = document.getElementById('movieModal');
+    modal.style.display = 'none';
+}
+
+// Modify existing functions to add modal event listeners
+async function enhanceDetailsButtons() {
+    // Select all details buttons
+    const detailsButtons = document.querySelectorAll('.details-button');
+
+    detailsButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Get the movie title from the sibling h3 element
+            const title = button.parentElement.querySelector('h3').textContent;
+            openModal(title);
+        });
+    });
+}
+
+
 // Main initialization
 async function init() {
     await setBest();
     await setCategories();
     const genres = await getGenres();
-    createDropdown(genres);
+    await createDropdown(genres);
+
+        await createModal();
+
+    // Add event listeners to details buttons
+    await enhanceDetailsButtons();
+
+    // Add global click event to close modal when clicking outside
+    window.addEventListener('click', (event) => {
+        const modal = document.getElementById('movieModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
 }
 
 // Run initialization
