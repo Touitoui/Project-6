@@ -7,7 +7,7 @@ async function getMovieById(id) {
 }
 
 async function getBest() {
-    const res = await fetch(api_address + "titles/?lang_contains=fr&sort_by=-imdb_score")
+    const res = await fetch(api_address + "titles/?sort_by=-imdb_score")
     let bestList = await res.json();
     return await getMovieById(bestList.results[0].id)
 }
@@ -144,7 +144,7 @@ async function updateMovieSection(genre, dropdownButton) {
 
             // Add event listener for details button
             detailsButton.addEventListener('click', () => {
-                openModal(movie.title);
+                openModal(movie.id);
             });
 
             movieTitleDiv.appendChild(detailsButton);
@@ -166,7 +166,7 @@ async function updateMovieSection(genre, dropdownButton) {
         });
 
         // Call enhanceDetailsButtons to ensure any missed buttons get listeners
-        await enhanceDetailsButtons();
+        // await enhanceDetailsButtons();
     } catch (error) {
         console.error('Error updating movie section:', error);
     }
@@ -187,7 +187,7 @@ async function createBestMovieSection() {
     titleDiv.appendChild(sectionTitle);
     bestMovieSection.appendChild(titleDiv);
 
-    // Create best movie div
+    // Create best-movie div
     const bestMovieDiv = document.createElement('div');
     bestMovieDiv.id = 'best-movie';
 
@@ -208,7 +208,7 @@ async function createBestMovieSection() {
 
     // Movie description
     const movieDescription = document.createElement('p');
-    movieDescription.textContent = best.long_description;
+    movieDescription.textContent = best.description;
     bestMovieContent.appendChild(movieDescription);
 
     // Details button
@@ -216,7 +216,7 @@ async function createBestMovieSection() {
     detailsButton.classList.add('details-button');
     detailsButton.textContent = 'Détails';
     detailsButton.addEventListener('click', () => {
-        openModal(best.title);
+        openModal(best.id);
     });
 
     // Assemble
@@ -261,8 +261,12 @@ async function createMovieCategory(genre) {
 
         // Details button
         const detailsButton = document.createElement('button');
-        detailsButton.textContent = 'Détails';
         detailsButton.classList.add('details-button');
+        detailsButton.textContent = 'Détails';
+        detailsButton.addEventListener('click', () => {
+            openModal(movie.id);
+        });
+
         movieTitleDiv.appendChild(detailsButton);
 
         // Add movie title div to movie element
@@ -310,23 +314,95 @@ async function createModal() {
     closeButton.innerHTML = '&times;';
     closeButton.onclick = closeModal;
 
-    // Modal title
+    // Modal elements
+    const modalImage = document.createElement('img');
+    modalImage.id = 'modal-movie-image';
     const modalTitle = document.createElement('h2');
     modalTitle.id = 'modal-movie-title';
+    const modalGenres = document.createElement('span');
+    modalGenres.id = 'modal-movie-genres';
+    const modalReleaseDate = document.createElement('span');
+    modalReleaseDate.id = 'modal-movie-release-date';
+    const modalScore = document.createElement('span');
+    modalScore.id = 'modal-movie-score';
+    const modalDirector = document.createElement('p');
+    modalDirector.id = 'modal-movie-director';
+    const modalActors = document.createElement('p');
+    modalActors.id = 'modal-movie-actors';
+    const modalDuration = document.createElement('span');
+    modalDuration.id = 'modal-movie-duration';
+    const modalCountry = document.createElement('span');
+    modalCountry.id = 'modal-movie-country';
+    const modalBoxOffice = document.createElement('p');
+    modalBoxOffice.id = 'modal-movie-box-office';
+    const modalDescription = document.createElement('p');
+    modalDescription.id = 'modal-movie-description';
+    const modalRating = document.createElement('span');
+    modalRating.id = 'modal-movie-rating';
 
     // Assemble
-    modalContent.appendChild(closeButton);
+    modalContent.appendChild(modalImage);
     modalContent.appendChild(modalTitle);
+
+    modalContent.appendChild(modalReleaseDate);
+    modalContent.appendChild(modalGenres);
+
+    modalContent.appendChild(modalRating);
+    modalContent.appendChild(modalDuration);
+    modalContent.appendChild(modalCountry);
+
+    modalContent.appendChild(modalScore);
+
+    modalContent.appendChild(modalDirector);
+
+    modalContent.appendChild(modalDescription);
+    modalContent.appendChild(modalActors);
+
+    // modalContent.appendChild(modalBoxOffice); // TODO: Not in figma
+
+    modalContent.appendChild(closeButton);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
 }
 
-function openModal(title) {
+async function openModal(movie_id) {
+    let movie = await getMovieById(movie_id)
+    console.log(movie)
     const modal = document.getElementById('movieModal');
+
+    const modalImage = document.getElementById('modal-movie-image');
     const modalTitle = document.getElementById('modal-movie-title');
+    const modalGenres = document.getElementById('modal-movie-genres');
+    const modalReleaseDate = document.getElementById('modal-movie-release-date');
+    const modalScore = document.getElementById('modal-movie-score');
+    const modalDirector = document.getElementById('modal-movie-director');
+    const modalActors = document.getElementById('modal-movie-actors');
+    const modalDuration = document.getElementById('modal-movie-duration');
+    const modalCountry = document.getElementById('modal-movie-country');
+    // const modalBoxOffice = document.getElementById('modal-movie-box-office'); // TODO: Not in figma
+    const modalDescription = document.getElementById('modal-movie-description');
+    const modalRating = document.getElementById('modal-movie-rating');
 
     // Set movie title
-    modalTitle.textContent = title;
+    modalImage.src = movie.image_url;
+    modalImage.alt = movie.title;
+    // If there's an error, use 404 image instead
+    modalImage.addEventListener("error", () => {
+        modalImage.src = "images/404.jpg";
+    });
+    modalTitle.textContent = movie.title;
+    if (movie.title != movie.original_title)
+        modalTitle.textContent += " (" + movie.original_title + ")";
+    modalGenres.textContent = movie.genres;
+    modalReleaseDate.textContent = movie.year;
+    modalScore.textContent = "IMDB score: " + movie.imdb_score + "/10";
+    modalDirector.textContent = "Réalisé par: " + movie.director;
+    modalActors.textContent = "Avec: " + movie.actors;
+    modalDuration.textContent = movie.duration + " minutes";
+    modalCountry.textContent = "(" + movie.countries + ")";
+    // modalBoxOffice.textContent = movie.budget + " " + movie.budget_currency; // TODO: Not in figma
+    modalDescription.textContent = movie.long_description; // TODO: Long description and description not always in same langage?
+    modalRating.textContent = movie.rated;
 
     // Display modal
     modal.style.display = 'block';
@@ -337,20 +413,6 @@ function closeModal() {
     modal.style.display = 'none';
 }
 
-// Modify existing functions to add modal event listeners
-async function enhanceDetailsButtons() {
-    // Select all details buttons
-    const detailsButtons = document.querySelectorAll('.details-button');
-
-    detailsButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            // Get the movie title from the sibling h3 element
-            const title = button.parentElement.querySelector('h3').textContent;
-            openModal(title);
-        });
-    });
-}
-
 // Main initialization
 async function init() {
     await createBestMovieSection(); // Replace setBest() with this
@@ -359,10 +421,10 @@ async function init() {
     const genres = await getGenres();
     await createDropdown(genres);
 
-        await createModal();
+    await createModal();
 
     // Add event listeners to details buttons
-    await enhanceDetailsButtons();
+    // await enhanceDetailsButtons();
 
     // Add global click event to close modal when clicking outside
     window.addEventListener('click', (event) => {
