@@ -134,7 +134,7 @@ async function updateMovieSection(genre, dropdownButton) {
 
             // Movie title
             const movieTitle = document.createElement('h3');
-            movieTitle.textContent = movie.title;
+            movieTitle.textContent = movie.original_title;
             movieTitleDiv.appendChild(movieTitle);
 
             // Details button
@@ -194,7 +194,7 @@ async function createBestMovieSection() {
     // Movie image
     const movieImage = document.createElement('img');
     movieImage.src = best.image_url;
-    movieImage.alt = best.title;
+    movieImage.alt = best.original_title;
     bestMovieDiv.appendChild(movieImage);
 
     // Movie content div
@@ -203,7 +203,7 @@ async function createBestMovieSection() {
 
     // Movie title
     const movieTitle = document.createElement('h3');
-    movieTitle.textContent = best.title;
+    movieTitle.textContent = best.original_title;
     bestMovieContent.appendChild(movieTitle);
 
     // Movie description
@@ -256,7 +256,7 @@ async function createMovieCategory(genre) {
 
         // Movie title
         const movieTitle = document.createElement('h3');
-        movieTitle.textContent = movie.title;
+        movieTitle.textContent = movie.original_title;
         movieTitleDiv.appendChild(movieTitle);
 
         // Details button
@@ -275,7 +275,7 @@ async function createMovieCategory(genre) {
         // Movie image
         const movieImage = document.createElement('img');
         movieImage.src = movie.image_url;
-        movieImage.alt = movie.title;
+        movieImage.alt = movie.original_title;
         // If there's an error, use 404 image instead
         movieImage.addEventListener("error", () => {
             movieImage.src = "images/404.jpg";
@@ -358,7 +358,7 @@ async function createModal() {
     modalContent.appendChild(modalDescription);
     modalContent.appendChild(modalActors);
 
-    // modalContent.appendChild(modalBoxOffice); // TODO: Not in figma
+    modalContent.appendChild(modalBoxOffice); // TODO: Not in figma
 
     modalContent.appendChild(closeButton);
     modal.appendChild(modalContent);
@@ -379,20 +379,20 @@ async function openModal(movie_id) {
     const modalActors = document.getElementById('modal-movie-actors');
     const modalDuration = document.getElementById('modal-movie-duration');
     const modalCountry = document.getElementById('modal-movie-country');
-    // const modalBoxOffice = document.getElementById('modal-movie-box-office'); // TODO: Not in figma
+    const modalBoxOffice = document.getElementById('modal-movie-box-office'); // TODO: Not in figma
     const modalDescription = document.getElementById('modal-movie-description');
     const modalRating = document.getElementById('modal-movie-rating');
 
     // Set movie title
     modalImage.src = movie.image_url;
-    modalImage.alt = movie.title;
+    modalImage.alt = movie.original_title;
     // If there's an error, use 404 image instead
     modalImage.addEventListener("error", () => {
         modalImage.src = "images/404.jpg";
     });
-    modalTitle.textContent = movie.title;
+    modalTitle.textContent = movie.original_title;
     if (movie.title != movie.original_title)
-        modalTitle.textContent += " (" + movie.original_title + ")";
+        modalTitle.textContent = " (" + movie.title + ")";
     modalGenres.textContent = movie.genres;
     modalReleaseDate.textContent = movie.year;
     modalScore.textContent = "IMDB score: " + movie.imdb_score + "/10";
@@ -400,7 +400,7 @@ async function openModal(movie_id) {
     modalActors.textContent = "Avec: " + movie.actors;
     modalDuration.textContent = movie.duration + " minutes";
     modalCountry.textContent = "(" + movie.countries + ")";
-    // modalBoxOffice.textContent = movie.budget + " " + movie.budget_currency; // TODO: Not in figma
+    modalBoxOffice.textContent = movie.budget + " " + movie.budget_currency; // TODO: Not in figma
     modalDescription.textContent = movie.long_description; // TODO: Long description and description not always in same langage?
     modalRating.textContent = movie.rated;
 
