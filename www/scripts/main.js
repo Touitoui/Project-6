@@ -108,7 +108,7 @@ async function createDropdown(genres) {
 
     // Update with first genre initially
     if (genres.length > 0) {
-        updateMovieSection(genres[0].name, dropdownButton);
+        await updateMovieSection(genres[0].name, dropdownButton);
     }
 }
 
@@ -166,39 +166,64 @@ async function updateMovieSection(genre, dropdownButton) {
         });
 
         // Call enhanceDetailsButtons to ensure any missed buttons get listeners
-        enhanceDetailsButtons();
+        await enhanceDetailsButtons();
     } catch (error) {
         console.error('Error updating movie section:', error);
     }
 }
 
-// async function setDropdown(){
-//     let genres = await getGenres()
-//     let dropdownElement = document.getElementById("dropdown-content");
-//     for (let i = 0; i < genres.length; i++) {
-//         let genreElement = document.createElement("a");
-//         genreElement.href = "#"
-//         genreElement.innerHTML = genres[i].name
-//         dropdownElement.appendChild(genreElement);
-//     }
-//     return genres[0]
-// }
-
-async function setBest(){
+async function createBestMovieSection() {
     let best = await getBest()
 
+    // Create the section element
+    const bestMovieSection = document.createElement('section');
+    bestMovieSection.classList.add('best-movie-section');
+
+    // Create title div
+    const titleDiv = document.createElement('div');
+    titleDiv.classList.add('title');
+    const sectionTitle = document.createElement('h2');
+    sectionTitle.textContent = 'Meilleur film';
+    titleDiv.appendChild(sectionTitle);
+    bestMovieSection.appendChild(titleDiv);
+
+    // Create best movie div
+    const bestMovieDiv = document.createElement('div');
+    bestMovieDiv.id = 'best-movie';
+
     // Movie image
-    const movieImage = document.querySelector('#best-movie img');
+    const movieImage = document.createElement('img');
     movieImage.src = best.image_url;
     movieImage.alt = best.title;
+    bestMovieDiv.appendChild(movieImage);
+
+    // Movie content div
+    const bestMovieContent = document.createElement('div');
+    bestMovieContent.classList.add('best-movie-content');
 
     // Movie title
-    const movieTitle = document.querySelector('#best-movie h3');
+    const movieTitle = document.createElement('h3');
     movieTitle.textContent = best.title;
+    bestMovieContent.appendChild(movieTitle);
 
     // Movie description
-    const movieDescription = document.querySelector('#best-movie p');
+    const movieDescription = document.createElement('p');
     movieDescription.textContent = best.long_description;
+    bestMovieContent.appendChild(movieDescription);
+
+    // Details button
+    const detailsButton = document.createElement('button');
+    detailsButton.classList.add('details-button');
+    detailsButton.textContent = 'Détails';
+    detailsButton.addEventListener('click', () => {
+        openModal(best.title);
+    });
+
+    // Assemble
+    bestMovieContent.appendChild(detailsButton);
+    bestMovieDiv.appendChild(bestMovieContent);
+    bestMovieSection.appendChild(bestMovieDiv);
+    document.body.appendChild(bestMovieSection);
 }
 
 async function createMovieCategory(genre) {
@@ -257,17 +282,12 @@ async function createMovieCategory(genre) {
         movieBlockDiv.appendChild(movieElem);
     });
 
-    // Add movie block to category section
+    // Assemble
     categorySection.appendChild(movieBlockDiv);
-
-    // Append to body
     document.body.appendChild(categorySection);
 }
 
 async function setCategories(){
-    // let genresList = await getGenres()
-    // console.log(genresList)
-    // for (let i = 0; i < genresList.length; i++)
     await createMovieCategory("Action");
     await createMovieCategory("Drama")
     await createMovieCategory("News")
@@ -294,12 +314,10 @@ async function createModal() {
     const modalTitle = document.createElement('h2');
     modalTitle.id = 'modal-movie-title';
 
-    // Assemble modal
+    // Assemble
     modalContent.appendChild(closeButton);
     modalContent.appendChild(modalTitle);
     modal.appendChild(modalContent);
-
-    // Add to body
     document.body.appendChild(modal);
 }
 
@@ -333,10 +351,10 @@ async function enhanceDetailsButtons() {
     });
 }
 
-
 // Main initialization
 async function init() {
-    await setBest();
+    await createBestMovieSection(); // Replace setBest() with this
+    // await setBest();
     await setCategories();
     const genres = await getGenres();
     await createDropdown(genres);
