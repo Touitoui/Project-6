@@ -10,35 +10,29 @@ body {
 }
 
 .banner {
-    height: 122px;
-    width: 90%;
     background-color: #61787F;
     color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid;
-    border-color: black;
-    margin: 0 auto;
-    position: relative;
+    border: 1px solid black;
+    padding: 1rem 0;
 }
 
 .banner img {
-    width: 127px;
-    height: 94px;
-    position: relative;
-    gap: 0;
+    max-width: 127px;
+    height: auto;
 }
 
 .banner h1 {
-    width: 514px;
-    height: 51px;
     font-family: 'Oswald', sans-serif;
-    font-size: 40px;
+    font-size: 2.5rem;
     font-weight: 300;
-    line-height: 59.28px;
+    margin: 0;
     text-align: left;
-    text-underline-position: from-font;
+}
+
+@media (max-width: 768px) {
+    .banner h1 {
+        font-size: 1.8rem;
+    }
 }
 
 section {
