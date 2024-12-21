@@ -309,95 +309,120 @@ async function createModal() {
     closeButton.innerHTML = '&times;';
     closeButton.onclick = closeModal;
 
-    // Modal elements
-    const modalImage = document.createElement('img');
-    modalImage.id = 'modal-movie-image';
+    // Header section with info and image
+    const modalHeader = document.createElement('div');
+    modalHeader.classList.add('modal-header');
+
+    // Info section (left side)
+    const modalInfo = document.createElement('div');
+    modalInfo.classList.add('modal-info');
+
+    // Create all info elements
     const modalTitle = document.createElement('h2');
     modalTitle.id = 'modal-movie-title';
-    const modalGenres = document.createElement('span');
-    modalGenres.id = 'modal-movie-genres';
+
+    const modalDateGenre = document.createElement('div');
+    modalDateGenre.classList.add('modal-date-genre');
     const modalReleaseDate = document.createElement('span');
     modalReleaseDate.id = 'modal-movie-release-date';
-    const modalScore = document.createElement('span');
-    modalScore.id = 'modal-movie-score';
-    const modalDirector = document.createElement('p');
-    modalDirector.id = 'modal-movie-director';
-    const modalActors = document.createElement('p');
-    modalActors.id = 'modal-movie-actors';
+    const modalGenres = document.createElement('span');
+    modalGenres.id = 'modal-movie-genres';
+    modalDateGenre.appendChild(modalReleaseDate);
+    modalDateGenre.appendChild(document.createTextNode(' - '));
+    modalDateGenre.appendChild(modalGenres);
+
+    const modalRatingInfo = document.createElement('div');
+    const modalRating = document.createElement('span');
+    modalRating.id = 'modal-movie-rating';
     const modalDuration = document.createElement('span');
     modalDuration.id = 'modal-movie-duration';
     const modalCountry = document.createElement('span');
     modalCountry.id = 'modal-movie-country';
-    const modalBoxOffice = document.createElement('p');
-    modalBoxOffice.id = 'modal-movie-box-office';
+    modalRatingInfo.appendChild(modalRating);
+    modalRatingInfo.appendChild(document.createTextNode(' - '));
+    modalRatingInfo.appendChild(modalDuration);
+    modalRatingInfo.appendChild(document.createTextNode(' - '));
+    modalRatingInfo.appendChild(modalCountry);
+
+    const modalScore = document.createElement('div');
+    modalScore.id = 'modal-movie-score';
+
+    const modalDirector = document.createElement('div');
+    modalDirector.id = 'modal-movie-director';
+
+    // Add all elements to info section
+    modalInfo.appendChild(modalTitle);
+    modalInfo.appendChild(modalDateGenre);
+    modalInfo.appendChild(modalRatingInfo);
+    modalInfo.appendChild(modalScore);
+    modalInfo.appendChild(modalDirector);
+
+    // Image section (right side)
+    const modalImageContainer = document.createElement('div');
+    const modalImage = document.createElement('img');
+    modalImage.id = 'modal-movie-image';
+    modalImage.classList.add('modal-image');
+    modalImageContainer.appendChild(modalImage);
+
+    // Add info and image to header
+    modalHeader.appendChild(modalInfo);
+    modalHeader.appendChild(modalImageContainer);
+
+    // Details section (below header)
+    const modalDetails = document.createElement('div');
+    modalDetails.classList.add('modal-details');
+
     const modalDescription = document.createElement('p');
     modalDescription.id = 'modal-movie-description';
-    const modalRating = document.createElement('span');
-    modalRating.id = 'modal-movie-rating';
+    const modalActors = document.createElement('p');
+    modalActors.id = 'modal-movie-actors';
+    const modalBoxOffice = document.createElement('p');
+    modalBoxOffice.id = 'modal-movie-box-office';
 
-    // Assemble
-    modalContent.appendChild(modalImage);
-    modalContent.appendChild(modalTitle);
+    modalDetails.appendChild(modalDescription);
+    modalDetails.appendChild(modalActors);
+    modalDetails.appendChild(modalBoxOffice);
 
-    modalContent.appendChild(modalReleaseDate);
-    modalContent.appendChild(modalGenres);
-
-    modalContent.appendChild(modalRating);
-    modalContent.appendChild(modalDuration);
-    modalContent.appendChild(modalCountry);
-
-    modalContent.appendChild(modalScore);
-
-    modalContent.appendChild(modalDirector);
-
-    modalContent.appendChild(modalDescription);
-    modalContent.appendChild(modalActors);
-
-    modalContent.appendChild(modalBoxOffice); // TODO: Not in figma
-
+    // Assemble modal
     modalContent.appendChild(closeButton);
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalDetails);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
 }
 
 async function openModal(movie_id) {
-    let movie = await getMovieById(movie_id)
-    console.log(movie)
+    let movie = await getMovieById(movie_id);
+    console.log(movie);
     const modal = document.getElementById('movieModal');
 
-    const modalImage = document.getElementById('modal-movie-image');
-    const modalTitle = document.getElementById('modal-movie-title');
-    const modalGenres = document.getElementById('modal-movie-genres');
-    const modalReleaseDate = document.getElementById('modal-movie-release-date');
-    const modalScore = document.getElementById('modal-movie-score');
-    const modalDirector = document.getElementById('modal-movie-director');
-    const modalActors = document.getElementById('modal-movie-actors');
-    const modalDuration = document.getElementById('modal-movie-duration');
-    const modalCountry = document.getElementById('modal-movie-country');
-    const modalBoxOffice = document.getElementById('modal-movie-box-office'); // TODO: Not in figma
-    const modalDescription = document.getElementById('modal-movie-description');
-    const modalRating = document.getElementById('modal-movie-rating');
+    // Update modal content
+    document.getElementById('modal-movie-image').src = movie.image_url;
+    document.getElementById('modal-movie-image').alt = movie.original_title;
 
-    // Set movie title
-    modalImage.src = movie.image_url;
-    modalImage.alt = movie.original_title;
-    // If there's an error, use 404 image instead
-    modalImage.addEventListener("error", () => {
-        modalImage.src = "images/404.jpg";
+    // Handle image error
+    document.getElementById('modal-movie-image').addEventListener("error", (e) => {
+        e.target.src = "images/404.jpg";
     });
-    modalTitle.textContent = movie.original_title;
-    if (movie.title != movie.original_title)
-        modalTitle.textContent = " (" + movie.title + ")";
-    modalGenres.textContent = movie.genres;
-    modalReleaseDate.textContent = movie.year;
-    modalScore.textContent = "IMDB score: " + movie.imdb_score + "/10";
-    modalDirector.textContent = "Réalisé par: " + movie.director;
-    modalActors.textContent = "Avec: " + movie.actors;
-    modalDuration.textContent = movie.duration + " minutes";
-    modalCountry.textContent = "(" + movie.countries + ")";
-    modalBoxOffice.textContent = movie.budget + " " + movie.budget_currency; // TODO: Not in figma
-    modalDescription.textContent = movie.long_description; // TODO: Long description and description not always in same langage?
-    modalRating.textContent = movie.rated;
+
+    // Set title (with original title if different)
+    let titleText = movie.title;
+    if (movie.title !== movie.original_title) {
+        titleText += ` (${movie.original_title})`;
+    }
+    document.getElementById('modal-movie-title').textContent = titleText;
+
+    // Set other information
+    document.getElementById('modal-movie-release-date').textContent = movie.year;
+    document.getElementById('modal-movie-genres').textContent = movie.genres;
+    document.getElementById('modal-movie-rating').textContent = movie.rated;
+    document.getElementById('modal-movie-duration').textContent = `${movie.duration} minutes`;
+    document.getElementById('modal-movie-country').textContent = movie.countries;
+    document.getElementById('modal-movie-score').textContent = `IMDB score: ${movie.imdb_score}/10`;
+    document.getElementById('modal-movie-director').textContent = `Réalisé par: ${movie.director}`;
+    document.getElementById('modal-movie-description').textContent = movie.long_description;
+    document.getElementById('modal-movie-actors').textContent = `Avec: ${movie.actors}`;
+    document.getElementById('modal-movie-box-office').textContent = `${movie.budget} ${movie.budget_currency}`;
 
     // Display modal
     modal.style.display = 'block';
