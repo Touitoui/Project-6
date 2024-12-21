@@ -24,5 +24,108 @@
             </div>
         </header>
 
+        <!-- Template for best movie section -->
+        <template id="best-movie-section-template">
+            <section class="container my-5">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h2>Meilleur film</h2>
+                    </div>
+                </div>
+                <div class="row" id="best-movie">
+                    <div class="col-12 col-md-4">
+                        <img class="img-fluid rounded" src="" alt="">
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <div class="best-movie-content mt-3 mt-md-0">
+                            <h3></h3>
+                            <p class="description"></p>
+                            <button class="btn btn-danger">Détails</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+        <!-- Template for category section -->
+        <template id="category-section-template">
+            <section class="container my-5">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h2></h2>
+                    </div>
+                </div>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    <!-- Movie cards will be inserted here -->
+                </div>
+            </section>
+        </template>
+
+        <!-- Template for dropdown category section -->
+        <template id="dropdown-section-template">
+            <section class="container my-5">
+                <div class="row mb-4">
+                    <div class="col d-flex align-items-center gap-3">
+                        <h2>Autre</h2>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                            <ul class="dropdown-menu" id="dropdown-content"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="dropdown-movie-block"></div>
+            </section>
+        </template>
+
+        <!-- Template for movie cards -->
+        <template id="movie-card-template">
+            <div class="col">
+                <div class="card movie-card h-100 border-0">
+                    <div class="card-img-container position-relative h-100">
+                        <img class="card-img h-100 w-100 object-fit-cover" src="" alt="">
+                        <div class="overlay-bar d-flex justify-content-between align-items-center px-3 py-2">
+                            <h5 class="card-title mb-0 text-white text-truncate"></h5>
+                            <button class="btn btn-sm btn-outline-light">Détails</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- Template for movie modal -->
+        <template id="movie-modal-template">
+            <div class="modal" id="movieModal">
+                <div class="modal-content">
+                    <span class="modal-close">&times;</span>
+                    <div class="modal-header">
+                        <div class="modal-info">
+                            <h2 id="modal-movie-title"></h2>
+                            <div class="modal-date-genre">
+                                <span id="modal-movie-release-date"></span>
+                                <span> - </span>
+                                <span id="modal-movie-genres"></span>
+                            </div>
+                            <div>
+                                <span id="modal-movie-rating"></span>
+                                <span> - </span>
+                                <span id="modal-movie-duration"></span>
+                                <span> - </span>
+                                <span id="modal-movie-country"></span>
+                            </div>
+                            <div id="modal-movie-score"></div>
+                            <div id="modal-movie-director"></div>
+                        </div>
+                        <div>
+                            <img id="modal-movie-image" class="modal-image" src="" alt="">
+                        </div>
+                    </div>
+                    <div class="modal-details">
+                        <p id="modal-movie-description"></p>
+                        <p id="modal-movie-actors"></p>
+                        <p id="modal-movie-box-office"></p>
+                    </div>
+                </div>
+            </div>
+        </template>
     </body>
 </html>
