@@ -53,39 +53,6 @@ async function getGenres() {
     return genres
 }
 
-async function createDropdown(genres) {
-    // Get and clone the template
-    const template = document.getElementById('dropdown-section-template');
-    const dropdownSection = template.content.cloneNode(true);
-
-    const dropdownButton = dropdownSection.querySelector('.dropdown-toggle');
-    const dropdownMenu = dropdownSection.querySelector('.dropdown-menu');
-    const movieBlock = dropdownSection.querySelector('#dropdown-movie-block');
-
-    // Populate dropdown with genres
-    genres.forEach(genre => {
-        const menuItem = document.createElement('li');
-        const genreLink = document.createElement('a');
-        genreLink.classList.add('dropdown-item');
-        genreLink.href = '#';
-        genreLink.textContent = genre.name;
-        genreLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            updateMovieSection(genre.name, dropdownButton);
-        });
-        menuItem.appendChild(genreLink);
-        dropdownMenu.appendChild(menuItem);
-    });
-
-    document.body.appendChild(dropdownSection);
-
-    // Update with first genre initially
-    if (genres.length > 0) {
-        await updateMovieSection(genres[0].name, dropdownButton);
-    }
-}
-
 async function createMovieCard(movie) {
     // Get the template
     const template = document.getElementById('movie-card-template');
@@ -110,26 +77,6 @@ async function createMovieCard(movie) {
     });
 
     return movieCard;
-}
-
-async function updateMovieSection(genre, dropdownButton) {
-    const movieBlock = document.getElementById('dropdown-movie-block');
-    movieBlock.innerHTML = '';
-    movieBlock.classList.add('row', 'row-cols-1', 'row-cols-md-2', 'row-cols-lg-3', 'g-4');
-
-    if (dropdownButton) {
-        dropdownButton.textContent = genre;
-    }
-
-    try {
-        const bestList = await getBestByGenre(genre);
-        for (const movie of bestList) {
-            const movieCard = await createMovieCard(movie);
-            movieBlock.appendChild(movieCard);
-        }
-    } catch (error) {
-        console.error('Error updating movie section:', error);
-    }
 }
 
 async function createBestMovieSection() {
@@ -161,21 +108,26 @@ async function createBestMovieSection() {
     document.body.appendChild(bestMovieSection);
 }
 
-async function createMovieCategory(genre) {
+async function createCategorySection(genre, isDynamic = false) {
     let bestList = await getBestByGenre(genre);
 
-    // Get and clone the template
-    const template = document.getElementById('category-section-template');
+    // Get and clone the appropriate template
+    const templateId = isDynamic ? 'dropdown-section-template' : 'category-section-template';
+    const template = document.getElementById(templateId);
     const categorySection = template.content.cloneNode(true);
 
     // Set category title
-    categorySection.querySelector('h2').textContent = genre;
+    const title = categorySection.querySelector('h2');
+    title.textContent = isDynamic ? 'Autre' : genre;
 
     // Get the movie container
     const movieContainer = categorySection.querySelector('.row-cols-1');
+    if (isDynamic) {
+        movieContainer.id = 'dropdown-movie-block';
+    }
 
-    // Add movies
-    const updateVisibleCards = async () => {
+    // Function to update the visible cards
+    const updateVisibleCards = async (currentGenre) => {
         movieContainer.innerHTML = '';
         let displayCount;
 
@@ -214,12 +166,44 @@ async function createMovieCategory(genre) {
         }
     };
 
-    await updateVisibleCards();
+    // If dynamic, set up dropdown functionality
+    if (isDynamic) {
+        const dropdownButton = categorySection.querySelector('.dropdown-toggle');
+        const dropdownMenu = categorySection.querySelector('.dropdown-menu');
 
-    const debouncedUpdate = debounce(updateVisibleCards, 250);
+        // Populate dropdown with genres
+        const genres = await getGenres();
+        genres.forEach(genreItem => {
+            const menuItem = document.createElement('li');
+            const genreLink = document.createElement('a');
+            genreLink.classList.add('dropdown-item');
+            genreLink.href = '#';
+            genreLink.textContent = genreItem.name;
+            genreLink.addEventListener('click', async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                dropdownButton.textContent = genreItem.name;
+                bestList = await getBestByGenre(genreItem.name);
+                await updateVisibleCards(genreItem.name);
+            });
+            menuItem.appendChild(genreLink);
+            dropdownMenu.appendChild(menuItem);
+        });
+
+        // Set initial genre
+        if (genres.length > 0) {
+            dropdownButton.textContent = genres[0].name;
+        }
+    }
+
+    await updateVisibleCards(genre);
+
+    // Add resize listener
+    const debouncedUpdate = debounce(() => updateVisibleCards(genre), 250);
     window.addEventListener('resize', debouncedUpdate);
 
     document.body.appendChild(categorySection);
+    return categorySection;
 }
 
 // Utility function to debounce resize events
@@ -235,10 +219,14 @@ function debounce(func, wait) {
     };
 }
 
-async function setCategories(){
-    await createMovieCategory("Action");
-    await createMovieCategory("Drama");
-    await createMovieCategory("News");
+async function setCategories() {
+    // Create fixed categories
+    await createCategorySection("Action");
+    await createCategorySection("Drama");
+    await createCategorySection("News");
+
+    // Create dynamic category
+    await createCategorySection("", true);
 }
 
 // Modal functionality
@@ -303,16 +291,9 @@ function closeModal() {
 
 // Main initialization
 async function init() {
-    await createBestMovieSection(); // Replace setBest() with this
-    // await setBest();
+    await createBestMovieSection();
     await setCategories();
-    const genres = await getGenres();
-    await createDropdown(genres);
-
     await createModal();
-
-    // Add event listeners to details buttons
-    // await enhanceDetailsButtons();
 
     // Add global click event to close modal when clicking outside
     window.addEventListener('click', (event) => {
