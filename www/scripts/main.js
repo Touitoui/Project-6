@@ -50,18 +50,20 @@ async function getGenres() {
 }
 
 async function createDropdown(genres) {
-    // Create dropdown section
+    // Create dropdown section with Bootstrap container
     const dropdownSection = document.createElement('section');
-    dropdownSection.classList.add('category-section');
+    dropdownSection.classList.add('container', 'my-5');
 
-    // Create title div
-    const titleDiv = document.createElement('div');
-    titleDiv.classList.add('title');
+    // Create title row
+    const titleRow = document.createElement('div');
+    titleRow.classList.add('row', 'mb-4');
+    const titleCol = document.createElement('div');
+    titleCol.classList.add('col', 'd-flex', 'align-items-center', 'gap-3');
 
     // Create dropdown title
     const dropdownTitle = document.createElement('h2');
     dropdownTitle.textContent = 'Autre';
-    titleDiv.appendChild(dropdownTitle);
+    titleCol.appendChild(dropdownTitle);
 
     // Create dropdown container
     const dropdownContainer = document.createElement('div');
@@ -69,39 +71,43 @@ async function createDropdown(genres) {
 
     // Create dropdown button
     const dropdownButton = document.createElement('button');
-    dropdownButton.classList.add('dropbtn');
+    dropdownButton.classList.add('btn', 'btn-secondary', 'dropdown-toggle');
+    dropdownButton.setAttribute('data-bs-toggle', 'dropdown');
+    dropdownButton.setAttribute('aria-expanded', 'false');
 
-    // Create dropdown content
-    const dropdownContent = document.createElement('div');
-    dropdownContent.classList.add('dropdown-content');
-    dropdownContent.id = 'dropdown-content';
+    // Create dropdown menu
+    const dropdownMenu = document.createElement('ul');
+    dropdownMenu.classList.add('dropdown-menu');
+    dropdownMenu.id = 'dropdown-content';
 
     // Populate dropdown with genres
     genres.forEach(genre => {
+        const menuItem = document.createElement('li');
         const genreLink = document.createElement('a');
+        genreLink.classList.add('dropdown-item');
         genreLink.href = '#';
         genreLink.textContent = genre.name;
         genreLink.addEventListener('click', (event) => {
-            // Prevent default link behavior (scrolling to top) and stop event from propagating
             event.preventDefault();
             event.stopPropagation();
-
             updateMovieSection(genre.name, dropdownButton);
         });
-        dropdownContent.appendChild(genreLink);
+        menuItem.appendChild(genreLink);
+        dropdownMenu.appendChild(menuItem);
     });
 
     // Assemble dropdown
     dropdownContainer.appendChild(dropdownButton);
-    dropdownContainer.appendChild(dropdownContent);
-    titleDiv.appendChild(dropdownContainer);
-    dropdownSection.appendChild(titleDiv);
+    dropdownContainer.appendChild(dropdownMenu);
+    titleCol.appendChild(dropdownContainer);
+    titleRow.appendChild(titleCol);
+    dropdownSection.appendChild(titleRow);
 
-    // Create movie block for dropdown section
-    const movieBlockDiv = document.createElement('div');
-    movieBlockDiv.classList.add('movie-block');
-    movieBlockDiv.id = 'dropdown-movie-block';
-    dropdownSection.appendChild(movieBlockDiv);
+    // Create movie block with Bootstrap grid
+    const movieBlockRow = document.createElement('div');
+    movieBlockRow.classList.add('row', 'row-cols-1', 'row-cols-md-2', 'row-cols-lg-3', 'g-4');
+    movieBlockRow.id = 'dropdown-movie-block';
+    dropdownSection.appendChild(movieBlockRow);
 
     // Append to body
     document.body.appendChild(dropdownSection);
@@ -112,61 +118,70 @@ async function createDropdown(genres) {
     }
 }
 
+async function createMovieCard(movie, containerType = 'col') {
+    const movieCol = document.createElement('div');
+    movieCol.classList.add(containerType);
+
+    const movieCard = document.createElement('div');
+    movieCard.classList.add('card', 'movie-card', 'h-100', 'border-0');
+
+    // Create image container for position reference
+    const imageContainer = document.createElement('div');
+    imageContainer.classList.add('card-img-container', 'position-relative', 'h-100');
+
+    // Movie image
+    const movieImage = document.createElement('img');
+    movieImage.src = movie.image_url;
+    movieImage.alt = movie.original_title;
+    movieImage.classList.add('card-img', 'h-100', 'w-100', 'object-fit-cover');
+    movieImage.addEventListener("error", () => {
+        movieImage.src = "images/404.jpg";
+    });
+
+    // Overlay bar with title and button
+    const overlayBar = document.createElement('div');
+    overlayBar.classList.add('overlay-bar', 'd-flex', 'justify-content-between', 'align-items-center', 'px-3', 'py-2');
+
+    // Movie title
+    const movieTitle = document.createElement('h5');
+    movieTitle.classList.add('card-title', 'mb-0', 'text-white', 'text-truncate');
+    movieTitle.textContent = movie.original_title;
+    movieTitle.title = movie.original_title; // For tooltip on hover
+
+    // Details button
+    const detailsButton = document.createElement('button');
+    detailsButton.classList.add('btn', 'btn-sm', 'btn-outline-light');
+    detailsButton.textContent = 'Détails';
+    detailsButton.addEventListener('click', () => {
+        openModal(movie.id);
+    });
+
+    // Assemble
+    overlayBar.appendChild(movieTitle);
+    overlayBar.appendChild(detailsButton);
+    imageContainer.appendChild(movieImage);
+    imageContainer.appendChild(overlayBar);
+    movieCard.appendChild(imageContainer);
+    movieCol.appendChild(movieCard);
+
+    return movieCol;
+}
+
 async function updateMovieSection(genre, dropdownButton) {
     const movieBlock = document.getElementById('dropdown-movie-block');
-    movieBlock.innerHTML = ''; // Clear existing movies
+    movieBlock.innerHTML = '';
+    movieBlock.classList.add('row', 'row-cols-1', 'row-cols-md-2', 'row-cols-lg-3', 'g-4');
 
-    // Update dropdown button text to show current genre
     if (dropdownButton) {
         dropdownButton.textContent = genre;
     }
 
     try {
         const bestList = await getBestByGenre(genre);
-
-        bestList.forEach(movie => {
-            const movieElem = document.createElement('div');
-            movieElem.classList.add('movie-elem');
-
-            // Create movie title div
-            const movieTitleDiv = document.createElement('div');
-            movieTitleDiv.classList.add('movie-title');
-
-            // Movie title
-            const movieTitle = document.createElement('h3');
-            movieTitle.textContent = movie.original_title;
-            movieTitleDiv.appendChild(movieTitle);
-
-            // Details button
-            const detailsButton = document.createElement('button');
-            detailsButton.classList.add('details-button');
-            detailsButton.textContent = 'Détails';
-
-            // Add event listener for details button
-            detailsButton.addEventListener('click', () => {
-                openModal(movie.id);
-            });
-
-            movieTitleDiv.appendChild(detailsButton);
-
-            // Add movie title div to movie element
-            movieElem.appendChild(movieTitleDiv);
-
-            // Movie image
-            const movieImage = document.createElement('img');
-            movieImage.src = movie.image_url;
-            movieImage.alt = movie.title;
-            movieImage.addEventListener("error", () => {
-                movieImage.src = "images/404.jpg";
-            });
-            movieElem.appendChild(movieImage);
-
-            // Add movie element to movie block
-            movieBlock.appendChild(movieElem);
-        });
-
-        // Call enhanceDetailsButtons to ensure any missed buttons get listeners
-        // await enhanceDetailsButtons();
+        for (const movie of bestList) {
+            const movieCard = await createMovieCard(movie);
+            movieBlock.appendChild(movieCard);
+        }
     } catch (error) {
         console.error('Error updating movie section:', error);
     }
@@ -175,31 +190,43 @@ async function updateMovieSection(genre, dropdownButton) {
 async function createBestMovieSection() {
     let best = await getBest()
 
-    // Create the section element
+    // Create the section element with Bootstrap container
     const bestMovieSection = document.createElement('section');
-    bestMovieSection.classList.add('best-movie-section');
+    bestMovieSection.classList.add('container', 'my-5');
 
-    // Create title div
-    const titleDiv = document.createElement('div');
-    titleDiv.classList.add('title');
+    // Create title row
+    const titleRow = document.createElement('div');
+    titleRow.classList.add('row', 'mb-4');
+    const titleCol = document.createElement('div');
+    titleCol.classList.add('col');
     const sectionTitle = document.createElement('h2');
     sectionTitle.textContent = 'Meilleur film';
-    titleDiv.appendChild(sectionTitle);
-    bestMovieSection.appendChild(titleDiv);
+    titleCol.appendChild(sectionTitle);
+    titleRow.appendChild(titleCol);
+    bestMovieSection.appendChild(titleRow);
 
-    // Create best-movie div
-    const bestMovieDiv = document.createElement('div');
-    bestMovieDiv.id = 'best-movie';
+    // Create best-movie row
+    const bestMovieRow = document.createElement('div');
+    bestMovieRow.classList.add('row');
+    bestMovieRow.id = 'best-movie';
+
+    // Create columns for image and content
+    const imageCol = document.createElement('div');
+    imageCol.classList.add('col-12', 'col-md-4');
+
+    const contentCol = document.createElement('div');
+    contentCol.classList.add('col-12', 'col-md-8');
 
     // Movie image
     const movieImage = document.createElement('img');
     movieImage.src = best.image_url;
     movieImage.alt = best.original_title;
-    bestMovieDiv.appendChild(movieImage);
+    movieImage.classList.add('img-fluid', 'rounded');
+    imageCol.appendChild(movieImage);
 
-    // Movie content div
+    // Movie content
     const bestMovieContent = document.createElement('div');
-    bestMovieContent.classList.add('best-movie-content');
+    bestMovieContent.classList.add('best-movie-content', 'mt-3', 'mt-md-0');
 
     // Movie title
     const movieTitle = document.createElement('h3');
@@ -213,7 +240,7 @@ async function createBestMovieSection() {
 
     // Details button
     const detailsButton = document.createElement('button');
-    detailsButton.classList.add('details-button');
+    detailsButton.classList.add('btn', 'btn-danger');
     detailsButton.textContent = 'Détails';
     detailsButton.addEventListener('click', () => {
         openModal(best.id);
@@ -221,73 +248,41 @@ async function createBestMovieSection() {
 
     // Assemble
     bestMovieContent.appendChild(detailsButton);
-    bestMovieDiv.appendChild(bestMovieContent);
-    bestMovieSection.appendChild(bestMovieDiv);
+    contentCol.appendChild(bestMovieContent);
+    bestMovieRow.appendChild(imageCol);
+    bestMovieRow.appendChild(contentCol);
+    bestMovieSection.appendChild(bestMovieRow);
     document.body.appendChild(bestMovieSection);
 }
 
 async function createMovieCategory(genre) {
-    let bestList = await getBestByGenre(genre)
+    let bestList = await getBestByGenre(genre);
 
-    // Create the main section element
     const categorySection = document.createElement('section');
-    categorySection.classList.add('category-section');
+    categorySection.classList.add('container', 'my-5');
 
-    // Create and append the title
-    const titleDiv = document.createElement('div');
-    titleDiv.classList.add('title');
+    // Create title row
+    const titleRow = document.createElement('div');
+    titleRow.classList.add('row', 'mb-4');
+    const titleCol = document.createElement('div');
+    titleCol.classList.add('col');
     const categoryTitle = document.createElement('h2');
     categoryTitle.textContent = genre;
-    titleDiv.appendChild(categoryTitle);
-    categorySection.appendChild(titleDiv);
+    titleCol.appendChild(categoryTitle);
+    titleRow.appendChild(titleCol);
+    categorySection.appendChild(titleRow);
 
-    // Create movie block div
-    const movieBlockDiv = document.createElement('div');
-    movieBlockDiv.classList.add('movie-block');
+    // Create movie block row
+    const movieBlockRow = document.createElement('div');
+    movieBlockRow.classList.add('row', 'row-cols-1', 'row-cols-md-2', 'row-cols-lg-3', 'g-4');
 
-    // Loop through movies and create movie elements
-    bestList.forEach(movie => {
-        const movieElem = document.createElement('div');
-        movieElem.classList.add('movie-elem');
+    // Create movie cards
+    for (const movie of bestList) {
+        const movieCard = await createMovieCard(movie);
+        movieBlockRow.appendChild(movieCard);
+    }
 
-        // Create movie title div
-        const movieTitleDiv = document.createElement('div');
-        movieTitleDiv.classList.add('movie-title');
-
-        // Movie title
-        const movieTitle = document.createElement('h3');
-        movieTitle.textContent = movie.original_title;
-        movieTitleDiv.appendChild(movieTitle);
-
-        // Details button
-        const detailsButton = document.createElement('button');
-        detailsButton.classList.add('details-button');
-        detailsButton.textContent = 'Détails';
-        detailsButton.addEventListener('click', () => {
-            openModal(movie.id);
-        });
-
-        movieTitleDiv.appendChild(detailsButton);
-
-        // Add movie title div to movie element
-        movieElem.appendChild(movieTitleDiv);
-
-        // Movie image
-        const movieImage = document.createElement('img');
-        movieImage.src = movie.image_url;
-        movieImage.alt = movie.original_title;
-        // If there's an error, use 404 image instead
-        movieImage.addEventListener("error", () => {
-            movieImage.src = "images/404.jpg";
-        });
-        movieElem.appendChild(movieImage);
-
-        // Add movie element to movie block
-        movieBlockDiv.appendChild(movieElem);
-    });
-
-    // Assemble
-    categorySection.appendChild(movieBlockDiv);
+    categorySection.appendChild(movieBlockRow);
     document.body.appendChild(categorySection);
 }
 
