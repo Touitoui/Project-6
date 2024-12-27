@@ -49,6 +49,12 @@ section {
 }
 
 /* Best movie section */
+#best-movie {
+    border: 2px solid black;
+    padding: 20px;
+    border-radius: 8px;
+}
+
 .best-movie img {
     width: auto;
     height: auto;
