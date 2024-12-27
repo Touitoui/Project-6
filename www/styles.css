@@ -125,16 +125,29 @@ section {
 
 .overlay-bar {
     position: absolute;
-    top: 33%;
+    top: 10%;
     left: 0;
     right: 0;
+    height: 40%;
     background: rgba(0, 0, 0, 0.7);
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.5rem;
 }
 
 .card-title {
-    max-width: 70%;
+    font-size: 1.50rem;
+    max-width: 90%;
+    margin: 0;
+    align-self: flex-start;
+}
+
+.card-button {
+    align-self: flex-end;
+    margin-top: auto;
 }
 
 /* Button hover effects */
