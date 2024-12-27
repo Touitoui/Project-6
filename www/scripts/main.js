@@ -1,21 +1,27 @@
 let api_address = "http://localhost:8000/api/v1/"
-const MOBILE_CARDS = 2;
-const TABLET_CARDS = 4;
+const DISPLAY_COUNTS = {
+    mobile: 2,
+    tablet: 4,
+    default: Number.POSITIVE_INFINITY
+};
 const MOBILE_BREAKPOINT = 768;
 const TABLET_BREAKPOINT = 1024;
 
+//Call to the API, get all data of a movie by its ID
 async function getMovieById(id) {
     console.log(api_address + "titles/" + id)
     const res = await fetch(api_address + "titles/" + id)
     return await res.json();
 }
 
+//Call to the API, get the best movie
 async function getBest() {
     const res = await fetch(api_address + "titles/?sort_by=-imdb_score")
     let bestList = await res.json();
     return await getMovieById(bestList.results[0].id)
 }
 
+//Call to the API, get the 6 best movies of a given genre
 async function getBestByGenre(genre) {
     const res = await fetch(api_address + "titles/?sort_by=-imdb_score&genre=" + genre)
     let bestList = await res.json();
@@ -36,6 +42,7 @@ async function getBestByGenre(genre) {
     return results
 }
 
+//Call to the API, get all genres
 async function getGenres() {
     let next = api_address + "genres/"
     let genres = [];
@@ -53,6 +60,7 @@ async function getGenres() {
     return genres
 }
 
+//Function to create the movie cards
 async function createMovieCard(movie) {
     // Get the template
     const template = document.getElementById('movie-card-template');
@@ -132,107 +140,118 @@ async function createBestMovieSection() {
     document.body.appendChild(bestMovieSection);
 }
 
-async function createCategorySection(genre, isDynamic = false) {
-    let bestList = await getBestByGenre(genre);
+// Function to create and setup the toggle button
+function createToggleButton(isExpanded, onClick) {
+    const buttonCol = document.createElement('div');
+    buttonCol.classList.add('col-12', 'text-center', 'mt-4');
 
-    // Get and clone the appropriate template
+    const toggleBtn = document.createElement('button');
+    toggleBtn.classList.add('btn', 'btn-primary');
+    toggleBtn.textContent = isExpanded ? 'Voir moins' : 'Voir plus';
+    toggleBtn.addEventListener('click', onClick);
+
+    buttonCol.appendChild(toggleBtn);
+    return buttonCol;
+}
+
+// Function to determine how many cards to display
+function getDisplayCount(windowWidth) {
+    if (windowWidth < MOBILE_BREAKPOINT) return DISPLAY_COUNTS.mobile;
+    if (windowWidth < TABLET_BREAKPOINT) return DISPLAY_COUNTS.tablet;
+    return DISPLAY_COUNTS.default;
+}
+
+// Function to create genre dropdown items
+async function setupGenreDropdown(dropdownMenu, dropdownButton, updateMovies) {
+    const genres = await getGenres();
+
+    genres.forEach(genreItem => {
+        const menuItem = document.createElement('li');
+        const genreLink = document.createElement('a');
+        genreLink.classList.add('dropdown-item');
+        genreLink.href = '#';
+        genreLink.textContent = genreItem.name;
+
+        genreLink.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            dropdownButton.textContent = genreItem.name;
+            await updateMovies(genreItem.name);
+        });
+
+        menuItem.appendChild(genreLink);
+        dropdownMenu.appendChild(menuItem);
+    });
+
+    // Set initial genre
+    if (genres.length > 0) {
+        dropdownButton.textContent = genres[0].name;
+    }
+}
+
+// Main function to render movie cards
+async function renderMovieCards(movieContainer, movies, isExpanded) {
+    movieContainer.innerHTML = '';
+    const displayCount = getDisplayCount(window.innerWidth);
+    const cardsToShow = isExpanded ? movies.length : Math.min(displayCount, movies.length);
+
+    // Create and append movie cards
+    for (let i = 0; i < cardsToShow; i++) {
+        const movieCard = await createMovieCard(movies[i]);
+        movieContainer.appendChild(movieCard);
+    }
+
+    // Add toggle button if needed
+    if (window.innerWidth < TABLET_BREAKPOINT && movies.length > displayCount) {
+        const toggleButton = createToggleButton(isExpanded, async () => {
+            movieContainer.dataset.expanded = (!isExpanded).toString();
+            await renderMovieCards(movieContainer, movies, !isExpanded);
+        });
+        movieContainer.appendChild(toggleButton);
+    }
+
+    movieContainer.dataset.expanded = isExpanded.toString();
+}
+
+// Main category section creation function
+async function createCategorySection(genre, isDynamic = false) {
+    let movies = await getBestByGenre(genre);
+
+    // Clone appropriate template
     const templateId = isDynamic ? 'dropdown-section-template' : 'category-section-template';
     const template = document.getElementById(templateId);
     const categorySection = template.content.cloneNode(true);
 
-    // Set category title
+    // Setup basic section structure
     const title = categorySection.querySelector('h2');
     title.textContent = isDynamic ? 'Autre' : genre;
 
-    // Get the movie container
     const movieContainer = categorySection.querySelector('.row-cols-1');
     if (isDynamic) {
         movieContainer.id = 'dropdown-movie-block';
-    }
 
-    // Function to update the visible cards
-    const updateVisibleCards = async (currentGenre, forceExpanded = null) => {
-        movieContainer.innerHTML = '';
-        let displayCount;
-        const isExpanded = forceExpanded !== null ? forceExpanded :
-                          movieContainer.dataset.expanded === 'true';
-
-        if (window.innerWidth < MOBILE_BREAKPOINT) {
-            displayCount = MOBILE_CARDS;
-        } else if (window.innerWidth < TABLET_BREAKPOINT) {
-            displayCount = TABLET_CARDS;
-        } else {
-            displayCount = bestList.length;
-        }
-
-        // Create cards
-        const cardsToShow = isExpanded ? bestList.length : Math.min(displayCount, bestList.length);
-        for (let i = 0; i < cardsToShow; i++) {
-            const movieCard = await createMovieCard(bestList[i]);
-            movieContainer.appendChild(movieCard);
-        }
-        // Add button if needed
-        if (window.innerWidth < TABLET_BREAKPOINT && bestList.length > displayCount) {
-            const buttonCol = document.createElement('div');
-            buttonCol.classList.add('col-12', 'text-center', 'mt-4');
-
-            const toggleBtn = document.createElement('button');
-            toggleBtn.classList.add('btn', 'btn-primary');
-            toggleBtn.textContent = isExpanded ? 'Voir moins' : 'Voir plus';
-
-            toggleBtn.addEventListener('click', async () => {
-                movieContainer.dataset.expanded = (!isExpanded).toString();
-                await updateVisibleCards(currentGenre);
-            });
-
-            buttonCol.appendChild(toggleBtn);
-            movieContainer.appendChild(buttonCol);
-        }
-
-        // Update expanded state
-        movieContainer.dataset.expanded = isExpanded.toString();
-    };
-
-    // If dynamic, set up dropdown functionality
-    if (isDynamic) {
+        // Setup dropdown for dynamic section
         const dropdownButton = categorySection.querySelector('.dropdown-toggle');
         const dropdownMenu = categorySection.querySelector('.dropdown-menu');
 
-        // Populate dropdown with genres
-        const genres = await getGenres();
-        genres.forEach(genreItem => {
-            const menuItem = document.createElement('li');
-            const genreLink = document.createElement('a');
-            genreLink.classList.add('dropdown-item');
-            genreLink.href = '#';
-            genreLink.textContent = genreItem.name;
-            genreLink.addEventListener('click', async (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                dropdownButton.textContent = genreItem.name;
-                bestList = await getBestByGenre(genreItem.name);
-                await updateVisibleCards(genreItem.name, false); // Reset to collapsed state on genre change
-            });
-            menuItem.appendChild(genreLink);
-            dropdownMenu.appendChild(menuItem);
-        });
+        const updateMovies = async (newGenre) => {
+            movies = await getBestByGenre(newGenre);
+            await renderMovieCards(movieContainer, movies, false);
+        };
 
-        // Set initial genre
-        if (genres.length > 0) {
-            dropdownButton.textContent = genres[0].name;
-        }
+        await setupGenreDropdown(dropdownMenu, dropdownButton, updateMovies);
     }
 
-    // Initialize with collapsed state
-    await updateVisibleCards(genre, false);
+    // Initial render
+    await renderMovieCards(movieContainer, movies, false);
 
-    // Add resize listener
-    const debouncedUpdate = debounce(() => {
-        // Preserve expanded/collapsed state on resize
+    // Setup resize handler
+    const handleResize = debounce(() => {
         const isExpanded = movieContainer.dataset.expanded === 'true';
-        updateVisibleCards(genre, isExpanded);
+        renderMovieCards(movieContainer, movies, isExpanded);
     }, 250);
-    window.addEventListener('resize', debouncedUpdate);
+
+    window.addEventListener('resize', handleResize);
 
     document.body.appendChild(categorySection);
     return categorySection;
@@ -251,6 +270,7 @@ function debounce(func, wait) {
     };
 }
 
+// Function that create the 3 categories and the selectable category
 async function setCategories() {
     // Create fixed categories
     await createCategorySection("Action");
@@ -261,7 +281,7 @@ async function setCategories() {
     await createCategorySection("", true);
 }
 
-// Modal functionality
+// Modal functionalities
 async function createModal() {
     // Check if modal already exists
     if (document.getElementById('movieModal')) {
@@ -332,6 +352,4 @@ async function init() {
 }
 
 // Run initialization
-document.addEventListener('DOMContentLoaded', function() {
-    init();
-});
+document.addEventListener('DOMContentLoaded', () => init());
