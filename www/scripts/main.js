@@ -71,8 +71,19 @@ async function createMovieCard(movie) {
     title.textContent = movie.original_title;
     title.title = movie.original_title; // For tooltip
 
+    const cardContainer = movieCard.querySelector('.card-img-container');
+    cardContainer.style.cursor = 'pointer'; // Add pointer cursor to indicate clickability
+    cardContainer.addEventListener('click', (event) => {
+        // Only open modal if we didn't click the details button
+        if (!event.target.classList.contains('btn')) {
+            openModal(movie.id);
+        }
+    });
+
+    // Keep the separate details button functionality
     const detailsButton = movieCard.querySelector('.btn');
-    detailsButton.addEventListener('click', () => {
+    detailsButton.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent card click event from triggering
         openModal(movie.id);
     });
 
@@ -87,11 +98,22 @@ async function createBestMovieSection() {
     const bestMovieSection = template.content.cloneNode(true);
 
     // Update content
-    const img = bestMovieSection.querySelector('img');
+    const imgContainer = bestMovieSection.querySelector('.col-12.col-md-4');
+    const img = imgContainer.querySelector('img');
+
+    // Add styles to make the image container clickable
+    imgContainer.style.cursor = 'pointer';
+
+    // Set image properties
     img.src = best.image_url;
     img.alt = best.original_title;
     img.addEventListener("error", () => {
         img.src = "images/404.jpg";
+    });
+
+    // Add click event to the image container
+    imgContainer.addEventListener('click', () => {
+        openModal(best.id);
     });
 
     const title = bestMovieSection.querySelector('h3');
@@ -100,8 +122,10 @@ async function createBestMovieSection() {
     const description = bestMovieSection.querySelector('.description');
     description.textContent = best.description;
 
+    // Keep the separate details button functionality
     const button = bestMovieSection.querySelector('button');
-    button.addEventListener('click', () => {
+    button.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent container click event from triggering
         openModal(best.id);
     });
 
@@ -127,9 +151,11 @@ async function createCategorySection(genre, isDynamic = false) {
     }
 
     // Function to update the visible cards
-    const updateVisibleCards = async (currentGenre) => {
+    const updateVisibleCards = async (currentGenre, forceExpanded = null) => {
         movieContainer.innerHTML = '';
         let displayCount;
+        const isExpanded = forceExpanded !== null ? forceExpanded :
+                          movieContainer.dataset.expanded === 'true';
 
         if (window.innerWidth < MOBILE_BREAKPOINT) {
             displayCount = MOBILE_CARDS;
@@ -139,31 +165,33 @@ async function createCategorySection(genre, isDynamic = false) {
             displayCount = bestList.length;
         }
 
-        // Create initial cards
-        for (let i = 0; i < Math.min(displayCount, bestList.length); i++) {
+        // Create cards
+        const cardsToShow = isExpanded ? bestList.length : Math.min(displayCount, bestList.length);
+        for (let i = 0; i < cardsToShow; i++) {
             const movieCard = await createMovieCard(bestList[i]);
             movieContainer.appendChild(movieCard);
         }
-
-        // Add "See more" button if needed
+        // TODO: Shows 4 cards, 3 in a row, and button when tablet is in horizontal view
+        // Add button if needed
         if (window.innerWidth < TABLET_BREAKPOINT && bestList.length > displayCount) {
             const buttonCol = document.createElement('div');
             buttonCol.classList.add('col-12', 'text-center', 'mt-4');
 
-            const seeMoreBtn = document.createElement('button');
-            seeMoreBtn.classList.add('btn', 'btn-primary');
-            seeMoreBtn.textContent = 'Voir plus';
-            seeMoreBtn.addEventListener('click', async () => {
-                buttonCol.remove();
-                for (let i = displayCount; i < bestList.length; i++) {
-                    const movieCard = await createMovieCard(bestList[i]);
-                    movieContainer.appendChild(movieCard);
-                }
+            const toggleBtn = document.createElement('button');
+            toggleBtn.classList.add('btn', 'btn-primary');
+            toggleBtn.textContent = isExpanded ? 'Voir moins' : 'Voir plus';
+
+            toggleBtn.addEventListener('click', async () => {
+                movieContainer.dataset.expanded = (!isExpanded).toString();
+                await updateVisibleCards(currentGenre);
             });
 
-            buttonCol.appendChild(seeMoreBtn);
+            buttonCol.appendChild(toggleBtn);
             movieContainer.appendChild(buttonCol);
         }
+
+        // Update expanded state
+        movieContainer.dataset.expanded = isExpanded.toString();
     };
 
     // If dynamic, set up dropdown functionality
@@ -184,7 +212,7 @@ async function createCategorySection(genre, isDynamic = false) {
                 event.stopPropagation();
                 dropdownButton.textContent = genreItem.name;
                 bestList = await getBestByGenre(genreItem.name);
-                await updateVisibleCards(genreItem.name);
+                await updateVisibleCards(genreItem.name, false); // Reset to collapsed state on genre change
             });
             menuItem.appendChild(genreLink);
             dropdownMenu.appendChild(menuItem);
@@ -196,10 +224,15 @@ async function createCategorySection(genre, isDynamic = false) {
         }
     }
 
-    await updateVisibleCards(genre);
+    // Initialize with collapsed state
+    await updateVisibleCards(genre, false);
 
     // Add resize listener
-    const debouncedUpdate = debounce(() => updateVisibleCards(genre), 250);
+    const debouncedUpdate = debounce(() => {
+        // Preserve expanded/collapsed state on resize
+        const isExpanded = movieContainer.dataset.expanded === 'true';
+        updateVisibleCards(genre, isExpanded);
+    }, 250);
     window.addEventListener('resize', debouncedUpdate);
 
     document.body.appendChild(categorySection);
@@ -308,3 +341,6 @@ async function init() {
 document.addEventListener('DOMContentLoaded', function() {
     init();
 });
+
+//TODO: Test on multiples browsers
+//TODO: Can clic on images/cards

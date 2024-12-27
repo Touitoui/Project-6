@@ -85,6 +85,7 @@ section {
     background: transparent;
 }
 
+/*TODO Issue on firefox */
 .card-img-container {
     aspect-ratio: 1/1;
     overflow: hidden;
