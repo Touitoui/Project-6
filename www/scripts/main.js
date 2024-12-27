@@ -171,7 +171,6 @@ async function createCategorySection(genre, isDynamic = false) {
             const movieCard = await createMovieCard(bestList[i]);
             movieContainer.appendChild(movieCard);
         }
-        // TODO: Shows 4 cards, 3 in a row, and button when tablet is in horizontal view
         // Add button if needed
         if (window.innerWidth < TABLET_BREAKPOINT && bestList.length > displayCount) {
             const buttonCol = document.createElement('div');
@@ -294,14 +293,8 @@ async function openModal(movie_id) {
         modalImage.src = "images/404.jpg";
     });
 
-    // Update title
-    let titleText = movie.title;
-    if (movie.title !== movie.original_title) {
-        titleText += ` (${movie.original_title})`;
-    }
-    document.getElementById('modal-movie-title').textContent = titleText;
-
     // Update other fields
+    document.getElementById('modal-movie-title').textContent = movie.original_title;
     document.getElementById('modal-movie-release-date').textContent = movie.year;
     document.getElementById('modal-movie-genres').textContent = movie.genres;
     document.getElementById('modal-movie-rating').textContent = movie.rated;
@@ -309,9 +302,10 @@ async function openModal(movie_id) {
     document.getElementById('modal-movie-country').textContent = movie.countries;
     document.getElementById('modal-movie-score').textContent = `IMDB score: ${movie.imdb_score}/10`;
     document.getElementById('modal-movie-director').textContent = `Réalisé par: ${movie.director}`;
+    let box_office_data = movie.budget ? `${movie.budget} ${movie.budget_currency}` : `Non disponible`;
+    document.getElementById('modal-movie-box-office').textContent = `Box office: ${box_office_data}`;
     document.getElementById('modal-movie-description').textContent = movie.long_description;
     document.getElementById('modal-movie-actors').textContent = `Avec: ${movie.actors}`;
-    document.getElementById('modal-movie-box-office').textContent = `${movie.budget} ${movie.budget_currency}`;
 
     // Display modal
     modal.style.display = 'block';
@@ -341,6 +335,3 @@ async function init() {
 document.addEventListener('DOMContentLoaded', function() {
     init();
 });
-
-//TODO: Test on multiples browsers
-//TODO: Can clic on images/cards
