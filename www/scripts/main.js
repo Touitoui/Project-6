@@ -158,11 +158,11 @@ class UIComponents {
         document.getElementById('modal-movie-duration').textContent = `${movie.duration} minutes`;
         document.getElementById('modal-movie-country').textContent = movie.countries;
         document.getElementById('modal-movie-score').textContent = `IMDB score: ${movie.imdb_score}/10`;
-        document.getElementById('modal-movie-director').textContent = `Réalisé par: ${movie.director}`;
+        document.getElementById('modal-movie-director').textContent = `${movie.director}`;
         let box_office_data = movie.budget ? `${movie.budget} ${movie.budget_currency}` : `Non disponible`;
         document.getElementById('modal-movie-box-office').textContent = `Box office: ${box_office_data}`;
         document.getElementById('modal-movie-description').textContent = movie.long_description;
-        document.getElementById('modal-movie-actors').textContent = `Avec: ${movie.actors}`;
+        document.getElementById('modal-movie-actors').textContent = `${movie.actors}`;
 
         modal.style.display = 'block';
     }

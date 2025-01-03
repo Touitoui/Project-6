@@ -43,6 +43,21 @@
     margin-bottom: 10px;
 }
 
+/* Bold styling for movie details */
+#modal-movie-release-date,
+#modal-movie-genres,
+#modal-movie-rating,
+#modal-movie-duration,
+#modal-movie-country,
+#modal-movie-score,
+#modal-movie-box-office {
+    font-weight: bold;
+}
+
+.label-bold {
+    font-weight: bold;
+}
+
 .modal-image {
     width: 100%;
     height: auto;
