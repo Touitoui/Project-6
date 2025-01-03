@@ -20,9 +20,6 @@
 }
 
 .movie-card:hover .card-img {
-    -webkit-transform: scale(1.05);
-    -moz-transform: scale(1.05);
-    -ms-transform: scale(1.05);
     transform: scale(1.05);
 }
 
@@ -44,7 +41,6 @@
 .card-title {
     font-size: 1.50rem;
     max-width: 90%;
-    margin: 0;
     align-self: flex-start;
 }
 

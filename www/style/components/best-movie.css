@@ -6,13 +6,8 @@
 
 /* Desktop/Tablet styles */
 @media (min-width: 768px) {
-    .best-movie-img-container {
-        height: auto;
-    }
-
     .best-movie-img {
         width: 100%;
-        height: auto;
         object-fit: cover;
     }
 }
