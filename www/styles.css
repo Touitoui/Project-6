@@ -59,7 +59,6 @@ body {
         justify-content: center !important;
     }
 }
-
 /* END Banner */
 
 section {
@@ -235,7 +234,8 @@ section {
     justify-self: end;
 }
 
-.modal-close {
+/* Mobile and Tablet Close Button (X) */
+.mobile-close {
     color: #aaa;
     font-size: 28px;
     font-weight: bold;
@@ -245,8 +245,44 @@ section {
     right: 15px;
 }
 
-.modal-close:hover {
+.mobile-close:hover {
     color: #000;
+}
+
+.desktop-close-container {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+.desktop-close {
+    display: none;  /* Hidden by default */
+}
+
+/* Mobile/Tablet: Show X, Hide Close button */
+@media (max-width: 1023px) {
+    .mobile-close {
+        display: block;
+    }
+    .desktop-close-container {
+        display: none;
+    }
+}
+
+/* Desktop: Hide X, Show Close button */
+@media (min-width: 1024px) {
+    .mobile-close {
+        display: none;
+    }
+    .desktop-close {
+        display: inline-block;
+        min-width: 120px;
+        padding: 8px 16px;
+    }
+    .desktop-close-container {
+        display: block;
+    }
 }
 
 .modal-details {

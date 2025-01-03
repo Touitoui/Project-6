@@ -131,8 +131,11 @@ class UIComponents {
         const template = document.getElementById('movie-modal-template');
         const modal = template.content.cloneNode(true);
 
-        const closeButton = modal.querySelector('.modal-close');
-        closeButton.onclick = () => this.closeModal();
+        const mobileCloseButton = modal.querySelector('.mobile-close');
+        const desktopCloseButton = modal.querySelector('.desktop-close');
+
+        mobileCloseButton.onclick = () => this.closeModal();
+        desktopCloseButton.onclick = () => this.closeModal();
 
         document.body.appendChild(modal);
     }
@@ -353,6 +356,4 @@ document.addEventListener('DOMContentLoaded', () => {
     app.init();
 });
 
-//TODO: banner, hide title on mobile
 //TODO: icon on dropdown for selection
-//TODO: "close" button on modal pc
